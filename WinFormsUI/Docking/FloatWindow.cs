@@ -55,6 +55,11 @@ namespace WeifenLuo.WinFormsUI.Docking
             if (pane != null)
                 pane.FloatWindow = this;
 
+            if (PatchController.EnableFontInheritanceFix == true)
+            {
+                Font = dockPanel.Font;
+            }
+
             ResumeLayout();
         }
 

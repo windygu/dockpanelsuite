@@ -46,7 +46,7 @@ namespace WeifenLuo.WinFormsUI.Docking
         #region Customizable Properties
         public Font TextFont
         {
-            get { return DockPanel.Skin.AutoHideStripSkin.TextFont; }
+            get { return DockPanel.Theme.Skin.AutoHideStripSkin.TextFont; }
         }
 
         private static StringFormat _stringFormatTabHorizontal;
@@ -202,11 +202,12 @@ namespace WeifenLuo.WinFormsUI.Docking
 
         protected override void OnPaint(PaintEventArgs e)
         {
+            base.OnPaint(e);
             Graphics g = e.Graphics;
 
-            Color startColor = DockPanel.Skin.AutoHideStripSkin.DockStripGradient.StartColor;
-            Color endColor = DockPanel.Skin.AutoHideStripSkin.DockStripGradient.EndColor;
-            LinearGradientMode gradientMode = DockPanel.Skin.AutoHideStripSkin.DockStripGradient.LinearGradientMode;
+            Color startColor = DockPanel.Theme.Skin.AutoHideStripSkin.DockStripGradient.StartColor;
+            Color endColor = DockPanel.Theme.Skin.AutoHideStripSkin.DockStripGradient.EndColor;
+            LinearGradientMode gradientMode = DockPanel.Theme.Skin.AutoHideStripSkin.DockStripGradient.LinearGradientMode;
             using (LinearGradientBrush brush = new LinearGradientBrush(ClientRectangle, startColor, endColor, gradientMode))
             {
                 g.FillRectangle(brush, ClientRectangle);
@@ -320,9 +321,9 @@ namespace WeifenLuo.WinFormsUI.Docking
             IDockContent content = tab.Content;
 
             GraphicsPath path = GetTabOutline(tab, false, true);
-            Color startColor = DockPanel.Skin.AutoHideStripSkin.TabGradient.StartColor;
-            Color endColor = DockPanel.Skin.AutoHideStripSkin.TabGradient.EndColor;
-            LinearGradientMode gradientMode = DockPanel.Skin.AutoHideStripSkin.TabGradient.LinearGradientMode;
+            Color startColor = DockPanel.Theme.Skin.AutoHideStripSkin.TabGradient.StartColor;
+            Color endColor = DockPanel.Theme.Skin.AutoHideStripSkin.TabGradient.EndColor;
+            LinearGradientMode gradientMode = DockPanel.Theme.Skin.AutoHideStripSkin.TabGradient.LinearGradientMode;
             g.FillPath(new LinearGradientBrush(rectTabOrigin, startColor, endColor, gradientMode), path);
             g.DrawPath(PenTabBorder, path);
 
@@ -371,7 +372,7 @@ namespace WeifenLuo.WinFormsUI.Docking
                 rectText.Width -= ImageGapLeft + imageWidth + ImageGapRight + TextGapLeft;
                 rectText = RtlTransform(GetTransformedRectangle(dockState, rectText), dockState);
 
-                Color textColor = DockPanel.Skin.AutoHideStripSkin.TabGradient.TextColor;
+                Color textColor = DockPanel.Theme.Skin.AutoHideStripSkin.TabGradient.TextColor;
 
                 if (dockState == DockState.DockLeftAutoHide || dockState == DockState.DockRightAutoHide)
                     g.DrawString(content.DockHandler.TabText, TextFont, new SolidBrush(textColor), rectText, StringFormatTabVertical);
@@ -489,12 +490,12 @@ namespace WeifenLuo.WinFormsUI.Docking
                 rect.Height, rect.Width);
         }
 
-        protected override IDockContent HitTest(Point ptMouse)
+        protected override IDockContent HitTest(Point point)
         {
             foreach (DockState state in DockStates)
             {
                 Rectangle rectTabStrip = GetLogicalTabStripRectangle(state, true);
-                if (!rectTabStrip.Contains(ptMouse))
+                if (!rectTabStrip.Contains(point))
                     continue;
 
                 foreach (Pane pane in GetPanes(state))
@@ -502,13 +503,20 @@ namespace WeifenLuo.WinFormsUI.Docking
                     foreach (TabVS2005 tab in pane.AutoHideTabs)
                     {
                         GraphicsPath path = GetTabOutline(tab, true, true);
-                        if (path.IsVisible(ptMouse))
+                        if (path.IsVisible(point))
                             return tab.Content;
                     }
                 }
             }
 
             return null;
+        }
+
+        protected override Rectangle GetTabBounds(Tab tab)
+        {
+            GraphicsPath path = GetTabOutline((TabVS2005)tab, true, true);
+            RectangleF bounds = path.GetBounds();
+            return new Rectangle((int)bounds.Left, (int)bounds.Top, (int)bounds.Width, (int)bounds.Height);
         }
 
         protected internal override int MeasureHeight()
